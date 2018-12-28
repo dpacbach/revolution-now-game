@@ -16,6 +16,7 @@ project(
 set( CMAKE_MODULE_PATH
    ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" )
 
+include( cotire ) # machinery for supporting PCH
 include( cmake/generic.cmake )
 include( cmake/sdl2-helper.cmake )
 
@@ -26,10 +27,6 @@ enable_address_sanitizer_if_requested()
 # compilers causing them to suppress color output) let's tell the
 # compilers to force color output.
 force_compiler_color_diagnostics()
-
-# === subdirectories ==============================================
-
-add_subdirectory( src )
 
 # === external dependencies =======================================
 
@@ -52,6 +49,10 @@ add_subdirectory( extern/observer-ptr  EXCLUDE_FROM_ALL )
 # instead of one that comes bundled inside of it.  In particular,
 # the external version used will be the one in our extern folder.
 target_compile_definitions( fmt INTERFACE SPDLOG_FMT_EXTERNAL )
+
+# === subdirectories ==============================================
+
+add_subdirectory( src )
 
 # === custom targets ==============================================
 

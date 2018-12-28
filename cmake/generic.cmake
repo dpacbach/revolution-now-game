@@ -1,24 +1,27 @@
 # === ccache ======================================================
 
-find_program( CCACHE_PROGRAM ccache )
-if( CCACHE_PROGRAM )
-    set( CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" )
-else()
-    message( STATUS "ccache not found." )
-endif()
+#find_program( CCACHE_PROGRAM ccache )
+#if( CCACHE_PROGRAM )
+#    set( CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" )
+#else()
+#    message( STATUS "ccache not found." )
+#endif()
 
 # === compiler warnings ===========================================
 
 # Enable all warnings and treat warnings as errors.
+# FIXME: disabled the generator expressions here because they
+# break Cotire (see https://github.com/sakra/cotire/issues/135).
 function( set_warning_options target )
     target_compile_options(
-        ${target} PRIVATE
+      ${target} PUBLIC
         # clang/GCC warnings
-        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
-            -Wall -Wextra >
+        #$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+        -Wall -Wextra #>
         # MSVC warnings
-        $<$<CXX_COMPILER_ID:MSVC>:
-            /Wall /WX > )
+        #$<$<CXX_COMPILER_ID:MSVC>:
+            #/Wall /WX >
+    )
 endfunction( set_warning_options )
 
 # === build type ==================================================

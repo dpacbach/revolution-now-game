@@ -26,6 +26,13 @@ target_link_libraries(
 target_include_directories(
     rn
     PRIVATE
+    /home/dsicilia/dev/revolution-now/extern/base-util/src/include
+    /home/dsicilia/dev/revolution-now/extern/abseil-cpp
+    /home/dsicilia/dev/revolution-now/extern/fmt/include
+    /home/dsicilia/dev/revolution-now/extern/observer-ptr/include
+    /home/dsicilia/dev/revolution-now/extern/spdlog/include
+    /home/dsicilia/dev/revolution-now/extern/libucl/include
+    /home/dsicilia/dev/revolution-now/extern/backward-cpp
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}
@@ -58,3 +65,6 @@ endif()
 target_compile_definitions( rn PRIVATE FMT_STRING_ALIAS=1 )
 
 clang_tidy( rn )
+
+set_target_properties( rn PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH /home/dsicilia/dev/revolution-now/src )
+cotire( rn )

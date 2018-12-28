@@ -12,9 +12,9 @@
 
 #include "core-config.hpp"
 
-#ifdef SPDLOG_ACTIVE_LEVEL
-#  error "SPDLOG_ACTIVE_LEVEL should not be defined!"
-#endif
+//#ifdef SPDLOG_ACTIVE_LEVEL
+//#  error "SPDLOG_ACTIVE_LEVEL should not be defined!"
+//#endif
 
 // To log at INFO level and below (meaning INFO, WARN, ERROR, and
 // CRITICAL) use the non-macro statements so that we can control
@@ -58,15 +58,17 @@
 // other preprocessor variables.
 
 // Decide how to set SPDLOG_ACTIVE_LEVEL.
-#ifdef RN_TRACE
+#ifndef SPDLOG_ACTIVE_LEVEL
+#  ifdef RN_TRACE
 // If the build system has requested a trace level then abide.
 // This will enable ALL logging statements.
-#  define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-#else
-#  ifdef NDEBUG // Release build
-#    define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
-#  else // Debug build
-#    define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#    define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#  else
+#    ifdef NDEBUG // Release build
+#      define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
+#    else // Debug build
+#      define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#    endif
 #  endif
 #endif
 
