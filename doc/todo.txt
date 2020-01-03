@@ -47,12 +47,6 @@ Language Changes
 Build System
 =================================================================
 
-  - Add support for precompiled headers.  CMake recently added
-    this feature and it should be available in a version post
-    3.15.x (probably 3.16+).  See:
-
-      https://gitlab.kitware.com/cmake/cmake/commit/fa36e2151d25358c7946a53c4440f0487210770d
-
   - Add Windows support.
 
 =================================================================

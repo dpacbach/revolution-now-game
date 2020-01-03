@@ -110,3 +110,5 @@ target_compile_definitions(
   )
 
 clang_tidy( rn )
+
+target_precompile_headers( rn PRIVATE pch.hpp )
