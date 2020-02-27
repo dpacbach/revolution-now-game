@@ -1,83 +1,100 @@
+Conclusions:
+
+  - OGL batched is always the fastest.
+  - OGL batched is very CPU bound.
+
+  - OGL unbatched is unusably slow.
+  - OGL unbatched is very GPU bound.
+
+  - SDL approach is sensitive to CPU optimizations, but but does
+    not come close in performance to OGL batched.
+
+  - OGL batched even in debug mode can always reach around ~60
+    fps (when optimized).
+
+  - SDL in release mode sometimes has trouble reaching 60 fps,
+    although in some cases it does better than 60 fps.
+
+  - SDL in debug mode is unusable.
+
+  - In release, OGL unbatched is generally much worse than SDL,
+    even on SDL versions that don't do batching (this is not un-
+    derstood). ?!?!
+
+=================================================================
+
 Leopard:
   SDL Version.....: 2.0.8
   OS..............: Mint 19.1
-  Release:
-    SDL...........: 227
-    OGL Batched...: 1154         <<
-    OGL Unbatched.: 56
-  Debug:
-    SDL...........: 30
-    OGL Batched...: 87           <<
-    OGL Unbatched.: 39
+  Release:                Debug:                  % (D/R)
+    SDL...........: 227     SDL...........: 30    13.2
+    SDL opt.......: 300     SDL opt.......: 90
+    OGL Batched...: 1154    OGL Batched...: 87     7.5
+    OGL Unbatched.: 56      OGL Unbatched.: 39    69.6
+    -----------------------------------------------------
+    SDL/OGL Btch %: .19     SDL/OGL Btch %: .34
 
 Darter Pro:
   SDL Version.....: 2.0.10
   OS..............: Pop 19.3
-  Release:
-    SDL...........: 73
-    OGL Batched...: 630          <<
-    OGL Unbatched.: 12
-  Debug:
-    SDL...........: 16
-    OGL Batched...: 67           <<
-    OGL Unbatched.: 11
+  Release:                Debug:                  % (D/R)
+    SDL...........: 73      SDL...........: 16    21.9
+    SDL opt.......: 83      SDL opt.......: 43
+    OGL Batched...: 630     OGL Batched...: 67    10.6
+    OGL Unbatched.: 12      OGL Unbatched.: 11    91.7
+    -----------------------------------------------------
+    SDL/OGL Btch %: .11     SDL/OGL Btch %: .23
 
 MacBook:
   SDL Version.....: 2.0.10
   OS..............: OSX 10.15
-  Release:
-    SDL...........: 38
-    OGL Batched...: 185          <<
-    OGL Unbatched.: 42
-  Debug:
-    SDL...........: 12
-    OGL Batched...: 53           <<
-    OGL Unbatched.: 33
+  Release:                Debug:                  % (D/R)
+    SDL...........: 38      SDL...........: 12    31.6
+    SDL opt.......:         SDL opt.......:
+    OGL Batched...: 185     OGL Batched...: 53    28.6
+    OGL Unbatched.: 42      OGL Unbatched.: 33    78.6
+    -----------------------------------------------------
+    SDL/OGL Btch %: .20     SDL/OGL Btch %: .22
 
 Lenovo:
   SDL Version.....: 2.0.10
   OS..............: Debian
-  Release:
-    SDL...........: 48
-    OGL Batched...: 161          <<
-    OGL Unbatched.: 10
-  Debug:
-    SDL...........: 17
-    OGL Batched...: 53           <<
-    OGL Unbatched.: 8
+  Release:                Debug:                  % (D/R)
+    SDL...........: 48      SDL...........: 17    35.4
+    SDL opt.......:         SDL opt.......:
+    OGL Batched...: 161     OGL Batched...: 53    32.9
+    OGL Unbatched.: 10      OGL Unbatched.: 8     80.0
+    -----------------------------------------------------
+    SDL/OGL Btch %: .29     SDL/OGL Btch %: .32
 
 MacBook Pro:
   SDL Version.....: 2.0.8
   OS..............: Mint 19.3
-  Release:
-    SDL...........: 110
-    OGL Batched...: 762          <<
-    OGL Unbatched.: 52
-  Debug:
-    SDL...........: 22
-    OGL Batched...: 76           <<
-    OGL Unbatched.: 32
+  Release:                Debug:                  % (D/R)
+    SDL...........: 110     SDL...........: 22    20.0
+    SDL opt.......:         SDL opt.......:
+    OGL Batched...: 762     OGL Batched...: 76    10.0
+    OGL Unbatched.: 52      OGL Unbatched.: 32    61.5
+    -----------------------------------------------------
+    SDL/OGL Btch %: .14     SDL/OGL Btch %: .28
 
 iMac:
   SDL Version.....: 2.0.10
   OS..............: 10.14
-  Release:
-    SDL...........: 127
-    OGL Batched...: 1055         <<
-    OGL Unbatched.: 3
-  Debug:
-    SDL...........: 22
-    OGL Batched...: 53           <<
-    OGL Unbatched.: 3
+  Release:                Debug:                  % (D/R)
+    SDL...........: 127     SDL...........: 22    17.3
+    SDL opt.......:         SDL opt.......:
+    OGL Batched...: 1055    OGL Batched...: 53     5.0
+    OGL Unbatched.: 3       OGL Unbatched.: 3    100.0
+    -----------------------------------------------------
+    SDL/OGL Btch %: .12     SDL/OGL Btch %: .41
 
 Office:
   SDL Version.....:
   OS..............: Debian
-  Release:
-    SDL...........:
-    OGL Batched...:
-    OGL Unbatched.:
-  Debug:
-    SDL...........:
-    OGL Batched...:
-    OGL Unbatched.:
+  Release:                Debug:                  % (D/R)
+    SDL...........:         SDL...........:
+    SDL opt.......:         SDL opt.......:
+    OGL Batched...: OGL     Batched.......:
+    OGL Unbatched.: OGL     Unbatched.....:
+    ------------------------------------------
