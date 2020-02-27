@@ -1,7 +1,7 @@
 player_nation: english
 
 # target_frame_rate: 65
-target_frame_rate: 240 # While testing graphics.
+target_frame_rate: 1000 # While testing graphics.
 
 depixelate_pixels_per_frame: 10
 

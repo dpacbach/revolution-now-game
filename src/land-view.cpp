@@ -312,106 +312,25 @@ SAVEGAME_IMPL( LandView );
 ** Land-View Rendering
 *****************************************************************/
 void render_land_view() {
-  auto const& state = SG().mode.state();
   g_texture_viewport.set_render_target();
-
-  auto covered = SG().viewport.covered_tiles();
-
-  render_terrain( covered, g_texture_viewport, Coord{} );
-
-  Opt<Coord>  blink_coords;
-  Opt<UnitId> blink_id;
-  // if( util::holds( state, LandViewState::blinking_unit
-  if_v( state, LandViewState::blinking_unit, blink ) {
-    blink_coords = coord_for_unit_indirect( blink->id );
-    blink_id     = blink->id;
-  }
-
-  Opt<UnitId> slide_id;
-  if_v( state, LandViewState::sliding_unit, slide ) {
-    slide_id = slide->id;
-  }
-
-  Opt<UnitId> depixelate_id;
-  if_v( state, LandViewState::depixelating_unit, dying ) {
-    depixelate_id = dying->id;
-  }
-
-  for( auto coord : covered ) {
-    Coord pixel_coord =
-        Coord{} + ( coord - covered.upper_left() );
-    pixel_coord *= g_tile_scale;
-
-    bool is_blink_square = ( coord == blink_coords );
-
-    // Next the units.
-
-    // If this square has been requested to be blank OR if there
-    // is a blinking unit on it then skip rendering units on it.
-    if( !is_blink_square ) {
-      // Render all units on this square as usual.
-      // TODO: need to figure out what to render when there are
-      //       multiple units on a square.
-      for( auto id : units_from_coord( coord ) )
-        if( slide_id != id && depixelate_id != id )
-          render_unit( g_texture_viewport, id, pixel_coord,
-                       /*with_icon=*/true );
-    }
-
-    // Next the colonies.
-
-    // FIXME: since colony icons spill over the usual 32x32 tile
-    // we need to render colonies that are beyond the `covered`
-    // rect.
-    if( auto col_id = colony_from_coord( coord );
-        col_id.has_value() )
-      render_colony( g_texture_viewport, *col_id,
-                     pixel_coord - Delta{ 6_w, 6_h } );
-
-    // Now do a blinking unit, if any.
-    if( blink_id && is_blink_square ) {
-      using namespace std::chrono;
-      using namespace std::literals::chrono_literals;
-      auto time        = system_clock::now().time_since_epoch();
-      auto one_second  = 1000ms;
-      auto half_second = 500ms;
-      if( time % one_second > half_second )
-        render_unit( g_texture_viewport, *blink_id, pixel_coord,
-                     /*with_icon=*/true );
-    }
-  }
-
-  // Now do sliding, if any
-  if_v( state, LandViewState::sliding_unit, slide ) {
-    Coord coords = coord_for_unit_indirect( slide->id );
-    Delta delta  = slide->target - coords;
-    CHECK( -1 <= delta.w && delta.w <= 1 );
-    CHECK( -1 <= delta.h && delta.h <= 1 );
-    delta *= g_tile_scale;
-    Delta pixel_delta{ W( int( delta.w._ * slide->percent ) ),
-                       H( int( delta.h._ * slide->percent ) ) };
-
-    auto  covered = SG().viewport.covered_tiles();
-    Coord pixel_coord =
-        Coord{} + ( coords - covered.upper_left() );
-    pixel_coord *= g_tile_scale;
-    pixel_coord += pixel_delta;
-    render_unit( g_texture_viewport, slide->id, pixel_coord,
-                 /*with_icon=*/true );
-  }
-
-  // Now do depixelation, if any.
-  if_v( state, LandViewState::depixelating_unit, dying ) {
-    ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                  ::SDL_BLENDMODE_BLEND );
-    auto covered = SG().viewport.covered_tiles();
-    ASSIGN_CHECK_OPT(
-        coords, coord_for_unit_multi_ownership( dying->id ) );
-    Coord pixel_coord =
-        Coord{} + ( coords - covered.upper_left() );
-    pixel_coord *= g_tile_scale;
-    copy_texture( g_tx_depixelate_from, g_texture_viewport,
-                  pixel_coord );
+  auto        covered = SG().viewport.covered_tiles();
+  auto const& sprite  = lookup_sprite( e_tile::water );
+  g_texture_viewport.set_render_target();
+  ::SDL_Rect sdl_src;
+  sdl_src.x = sprite.source.x._;
+  sdl_src.y = sprite.source.y._;
+  sdl_src.w = 32;
+  sdl_src.h = 32;
+  ::SDL_Rect sdl_dst;
+  sdl_dst.w         = 32;
+  sdl_dst.h         = 32;
+  ::SDL_Texture* tx = ( ::SDL_Texture*)sprite.texture->get();
+  for( auto square : covered ) {
+    Delta d   = square - covered.upper_left();
+    sdl_dst.x = d.w._ * 32;
+    sdl_dst.y = d.h._ * 32;
+    ::SDL_RenderCopyEx( g_renderer, tx, &sdl_src, &sdl_dst, 0,
+                        nullptr, ::SDL_FLIP_NONE );
   }
 }
 

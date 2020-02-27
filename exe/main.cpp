@@ -22,7 +22,7 @@ void game() { frame_loop(); }
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) {
-  bool do_game = false;
+  bool do_game = true;
   try {
     try {
       linker_dont_discard_me();
