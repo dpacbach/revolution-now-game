@@ -51,8 +51,12 @@ int main( int /*unused*/, char** /*unused*/ ) {
     if( !sdl_error.empty() )
       lg.error( "SDL error (may be a false positive): {}",
                 sdl_error );
-    print_stack_trace( e.st, 4 );
     run_all_cleanup_routines();
+    cerr << "---------------------------------------------------"
+            "--------------\n";
+    print_stack_trace( e.st, 4 );
+    cerr << "---------------------------------------------------"
+            "--------------\n";
     return 1;
   } catch( exception const& e ) {
     lg.error( e.what() );
