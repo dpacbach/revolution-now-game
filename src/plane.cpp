@@ -24,7 +24,6 @@
 #include "main-menu.hpp"
 #include "menu.hpp"
 #include "panel.hpp"
-#include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -36,11 +35,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// Range-v3
-#include "range/v3/view/filter.hpp"
-#include "range/v3/view/reverse.hpp"
-#include "range/v3/view/zip.hpp"
-
 // C++ standard library
 #include <algorithm>
 #include <array>
@@ -51,7 +45,7 @@ namespace rn {
 
 namespace {
 
-constexpr auto num_planes =
+constexpr auto kNumPlanes =
     static_cast<size_t>( magic_enum::enum_count<e_plane>() );
 
 // The `values` array should be a constexpr.
@@ -70,8 +64,8 @@ maybe<vector<e_plane>> g_plane_list_next;
 ** Plane Textures
 *****************************************************************/
 // Planes are rendered from 0 --> count.
-array<Plane*, num_planes>  planes;
-array<Texture, num_planes> textures;
+array<Plane*, kNumPlanes>  planes;
+array<Texture, kNumPlanes> textures;
 
 Plane*& plane( e_plane plane ) {
   auto idx = magic_enum::enum_integer( plane );
@@ -183,19 +177,30 @@ NOTHROW_MOVE( DragState );
 DragState g_drag_state;
 
 /****************************************************************
-** Plane Range Combinators
+** Plane Ranges
 *****************************************************************/
-auto relevant_planes() {
-  static auto not_covers_screen =
-      L( !_.second->covers_screen() );
-  auto plane_ptrs =
-      g_plane_list | rv::transform( L( plane( _ ) ) );
-  return rv::zip( g_plane_list, plane_ptrs ) //
-         | rv::reverse                       //
-         | take_while_inclusive( not_covers_screen );
+vector<pair<e_plane, Plane*>> relevant_planes() {
+  static auto covers_screen = L( _.second->covers_screen() );
+  vector<pair<e_plane, Plane*>> res;
+  res.reserve( kNumPlanes );
+  for( e_plane p : g_plane_list )
+    res.push_back( { p, plane( p ) } );
+  reverse( res.begin(), res.end() );
+  auto it = find_if( res.begin(), res.end(), covers_screen );
+  DCHECK( it != res.end(),
+          "plane list {} does not contain a plane that covers "
+          "the screen.",
+          FmtJsonStyleList{ g_plane_list } );
+  ++it;
+  res.erase( it, res.end() );
+  return res;
 }
 
-auto planes_to_draw() { return relevant_planes() | rv::reverse; }
+vector<pair<e_plane, Plane*>> planes_to_draw() {
+  auto v = relevant_planes();
+  reverse( v.begin(), v.end() );
+  return v;
+}
 
 /****************************************************************
 ** Initialization

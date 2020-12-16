@@ -17,16 +17,14 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
-#include "ranges.hpp"
 #include "terrain.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
-// Range-v3
-#include "range/v3/view/iota.hpp"
-#include "range/v3/view/transform.hpp"
+// base
+#include "base/lambda.hpp"
 
 // SDL
 #include "SDL.h"
@@ -204,12 +202,17 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
-  auto scale_scores =
-      rv::iota( min_scale_factor, max_scale_factor + 1 ) //
-      | rv::transform( scale_info );
+  vector<ScaleInfo> infos;
+  for( auto i = min_scale_factor; i < max_scale_factor + 1; ++i )
+    infos.push_back( scale_info( i ) );
 
-  ASSIGN_CHECK_OPT( optimal,
-                    scale_scores | min_by_key( scale_score ) );
+  auto it = min_element(
+      infos.begin(), infos.end(), []( auto& l, auto& r ) {
+        return scale_score( l ) < scale_score( r );
+      } );
+
+  CHECK( it != infos.end() );
+  ScaleInfo const& optimal = *it;
 
   ///////////////////////////////////////////////////////////////
 #if 0

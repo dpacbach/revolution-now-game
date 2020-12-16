@@ -21,7 +21,6 @@
 #include "logging.hpp"
 #include "macros.hpp"
 #include "plane.hpp"
-#include "ranges.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -42,13 +41,6 @@
 
 // magic enum
 #include "magic_enum.hpp"
-
-// Range-v3
-#include "range/v3/view/intersperse.hpp"
-#include "range/v3/view/remove_if.hpp"
-#include "range/v3/view/reverse.hpp"
-#include "range/v3/view/take_while.hpp"
-#include "range/v3/view/transform.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -286,7 +278,10 @@ bool have_some_visible_menus() {
 }
 
 maybe<e_menu> first_visible_menu() {
-  return head( visible_menus() );
+  maybe<e_menu> res;
+  auto&         menus = visible_menus();
+  if( !menus.empty() ) res = menus[0];
+  return res;
 }
 
 /****************************************************************
@@ -398,25 +393,17 @@ X menu_header_x_pos_( e_menu target ) {
   CHECK( is_menu_visible( target ) );
   auto const& desc = g_menus[target];
   W           width_delta{ 0 };
-  auto const& vm = visible_menus();
-  if( desc.right_side ) {
-    width_delta = rg::accumulate(
-        vm                                                   //
-            | rv::reverse                                    //
-            | rv::remove_if( L( !g_menus[_].right_side ) )   //
-            | take_while_inclusive( LC( _ != target ) )      //
-            | rv::transform( L( menu_header_delta( _ ).w ) ) //
-            | rv::intersperse( config_ui.menus.spacing ),
-        0_w );
-  } else {
-    width_delta = rg::accumulate(
-        vm                                                //
-            | rv::remove_if( L( g_menus[_].right_side ) ) //
-            | rv::take_while( LC( _ != target ) )         //
-            | rv::transform( L( menu_header_delta( _ ).w +
-                                config_ui.menus.spacing ) ),
-        0_w );
-  }
+  auto        vm = visible_menus();
+  erase_if( vm, LC( g_menus[_].right_side != desc.right_side ) );
+  auto target_it = find( vm.begin(), vm.end(), target );
+  if( desc.right_side )
+    vm.erase( vm.begin(), target_it );
+  else
+    vm.erase( target_it, vm.end() );
+  for( e_menu item : vm )
+    width_delta +=
+        menu_header_delta( item ).w + config_ui.menus.spacing;
+  if( !vm.empty() ) width_delta -= config_ui.menus.spacing;
   width_delta += config_ui.menus.first_menu_start;
   CHECK( width_delta >= 0_w );
   return 0_x + ( !desc.right_side

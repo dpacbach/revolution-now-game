@@ -16,7 +16,6 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "rand.hpp"
-#include "ranges-fwd.hpp"
 #include "time.hpp"
 
 // Revolution Now (config)
@@ -27,13 +26,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-
-// Range-v3
-#include "range/v3/algorithm/reverse.hpp"
-#include "range/v3/range/conversion.hpp"
-#include "range/v3/view/filter.hpp"
-#include "range/v3/view/take_while.hpp"
-#include "range/v3/view/transform.hpp"
 
 // C++ standard library
 #include <limits>
@@ -188,8 +180,9 @@ vector<TuneId> find_tunes( TuneVecDimensions dimensions,
 
   if( not_like ) reverse( scores.begin(), scores.end() );
 
-  auto res = rg::to<vector<TuneId>>(
-      scores | rv::transform( L( _.first ) ) );
+  vector<TuneId> res;
+  res.reserve( scores.size() );
+  for( auto const& s : scores ) res.push_back( s.first );
   if( fuzzy_match ) { DCHECK( !res.empty() ); }
   return res;
 }
@@ -233,12 +226,12 @@ TuneId random_tune() {
       tune_difference_scores( dims.to_vec_dims() );
   CHECK( !tunes_scores.empty() );
   auto first_score = tunes_scores[0].second;
-  auto same_distance =
-      tunes_scores |
-      rv::take_while( LC( _.second == first_score ) );
-  return rng::pick_one(
-             rg::to<vector<pair<TuneId, int>>>( same_distance ) )
-      .first;
+  vector<pair<TuneId, int>>& same_distance = tunes_scores;
+  same_distance.erase(
+      find_if( same_distance.begin(), same_distance.end(),
+               LC( _.second != first_score ) ),
+      same_distance.end() );
+  return rng::pick_one( same_distance ).first;
 }
 
 } // namespace rn

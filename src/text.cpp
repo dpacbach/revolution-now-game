@@ -16,7 +16,6 @@
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
-#include "ranges.hpp"
 #include "ttf.hpp"
 
 // base
@@ -31,13 +30,8 @@
 // Abseil
 #include "absl/strings/str_split.h"
 
-// Range-v3
-#include "range/v3/numeric/accumulate.hpp"
-#include "range/v3/view/remove_if.hpp"
-#include "range/v3/view/transform.hpp"
-#include "range/v3/view/zip.hpp"
-
 // C++ standard library
+#include <numeric>
 #include <unordered_map>
 
 using namespace std;
@@ -225,17 +219,17 @@ Texture render_line_markup( e_font                      font,
   auto renderer = [&]( MarkedUpText const& mk ) {
     return render_markup( font, mk, info );
   };
-  auto txs = rg::to<vector<Texture>>(
-      mks                                        //
-      | rv::remove_if( L( _.text.size() == 0 ) ) //
-      | rv::transform( renderer ) );
+  vector<Texture> txs;
+  for( MarkedUpText const& mk : mks )
+    if( mk.text.size() != 0 ) //
+      txs.push_back( renderer( mk ) );
   CHECK( !txs.empty() );
-  auto w = rg::accumulate(
-      txs | rv::transform( L( _.size().w ) ), 0_w );
-  auto maybe_h =
-      txs | rv::transform( L( _.size().h ) ) | maximum();
-  CHECK( maybe_h );
-  auto  res = create_texture_transparent( { w, *maybe_h } );
+  W    w  = accumulate( txs.begin(), txs.end(), 0_w,
+                    L2( _1 + _2.size().w ) );
+  auto it = max_element( txs.begin(), txs.end(),
+                         L2( _1.size().h < _2.size().h ) );
+  CHECK( it != txs.end() );
+  auto  res = create_texture_transparent( { w, it->size().h } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -250,12 +244,12 @@ Texture render_lines( e_font font, Color fg,
     return render_line( font, fg, line );
   };
   auto txs = util::map( renderer, txt );
-  auto h   = rg::accumulate(
-      txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto maybe_w =
-      txs | rv::transform( L( _.size().w ) ) | maximum();
-  CHECK( maybe_w );
-  auto  res = create_texture_transparent( { h, *maybe_w } );
+  H    h   = accumulate( txs.begin(), txs.end(), 0_h,
+                    L2( _1 + _2.size().h ) );
+  auto it  = max_element( txs.begin(), txs.end(),
+                         L2( _1.size().w < _2.size().w ) );
+  CHECK( it != txs.end() );
+  auto  res = create_texture_transparent( { h, it->size().w } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -271,12 +265,12 @@ Texture render_lines_markup(
     return render_line_markup( font, mks, info );
   };
   auto txs = util::map( renderer, mk_text );
-  auto h   = rg::accumulate(
-      txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto maybe_w =
-      txs | rv::transform( L( _.size().w ) ) | maximum();
-  CHECK( maybe_w );
-  auto  res = create_texture_transparent( { h, *maybe_w } );
+  H    h   = accumulate( txs.begin(), txs.end(), 0_h,
+                    L2( _1 + _2.size().h ) );
+  auto it  = max_element( txs.begin(), txs.end(),
+                         L2( _1.size().w < _2.size().w ) );
+  CHECK( it != txs.end() );
+  auto  res = create_texture_transparent( { h, it->size().w } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -323,9 +317,9 @@ Texture render_text_markup_reflow_impl(
   auto mk_text = std::move( mk_texts[0] );
 
   // (4)
-  auto non_mk_text = rg::accumulate(
-      mk_text | rv::transform( L( string( _.text ) ) ),
-      string( "" ) );
+  string non_mk_text;
+  for( MarkedUpText const& x : mk_text )
+    non_mk_text += string( x.text );
 
   // (5)
   auto wrapped =
@@ -339,9 +333,10 @@ Texture render_text_markup_reflow_impl(
   // We will advance these numbers as we move through the charac-
   // ters of the wrapped lines.
   int mk_pos = 0, mk_char_pos = 0;
-  for( auto p : rv::zip( wrapped, reflowed ) ) {
-    auto& [line, reflowed_line] = p;
-    int target_size             = int( line.size() );
+  for( int i = 0; i < int( reflowed.size() ); ++i ) {
+    auto& line          = wrapped[i];
+    auto& reflowed_line = reflowed[i];
+    int   target_size   = int( line.size() );
     // Keep using up MarkedUpText elements (or parts of them)
     // until we have exausted this line of text. This loop body
     // is messy because in general we must consume partial
